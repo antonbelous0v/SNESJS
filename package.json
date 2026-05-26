@@ -1,0 +1,25 @@
+{
+  "name": "snesjs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Statically compiled JavaScript game engine and toolchain for the Super Nintendo Entertainment System",
+  "scripts": {
+    "test": "node --test packages/*/test/*.test.js",
+    "test:compiler": "node --test packages/compiler/test/*.test.js",
+    "test:cli": "node --test packages/cli/test/*.test.js",
+    "lint": "eslint packages",
+    "lint:fix": "eslint packages --fix",
+    "benchmark": "node packages/compiler/benchmarks/suite.js",
+    "benchmark:lexer": "node packages/compiler/benchmarks/lexer.js",
+    "benchmark:parser": "node packages/compiler/benchmarks/parser.js",
+    "benchmark:tiles": "node packages/compiler/benchmarks/tiles.js",
+    "build": "node packages/cli/bin/snes.js build",
+    "analyze": "node packages/cli/bin/snes.js analyze",
+    "check": "node --check packages/compiler/src/compile.js"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.12.0"
+  }
+}

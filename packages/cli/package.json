@@ -1,0 +1,12 @@
+{
+  "name": "@snesjs/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SNESJS command line interface: build, dev, test, analyze, inspect",
+  "bin": {
+    "snes": "./bin/snes.js"
+  },
+  "dependencies": {
+    "@snesjs/compiler": "0.1.0"
+  }
+}

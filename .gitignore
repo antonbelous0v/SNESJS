@@ -1,0 +1,8 @@
+node_modules/
+build/
+dist/
+.snes/
+*.log
+.DS_Store
+packages/*/build/
+snesjs_engine_spec.md

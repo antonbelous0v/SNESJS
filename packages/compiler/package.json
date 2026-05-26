@@ -1,0 +1,9 @@
+{
+  "name": "@snesjs/compiler",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SNESJS static compiler: JavaScript → typed HIR → Game IR → generated C11 for OpenSNES",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}
