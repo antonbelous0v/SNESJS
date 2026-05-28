@@ -179,6 +179,23 @@ export function rangeForType(type) {
   return { min: 0, max: 0 }
 }
 
+export function signedType(type) {
+  if (type.kind === TypeKind.Numeric) {
+    const name = type.name
+    if (name === NumericKind.U8) {
+      return Type.numeric(NumericKind.I8)
+    }
+    if (name === NumericKind.U16) {
+      return Type.numeric(NumericKind.I16)
+    }
+    if (name === NumericKind.U24 || name === NumericKind.U32) {
+      return Type.numeric(NumericKind.I32)
+    }
+    return type
+  }
+  return type
+}
+
 export function canOverflow(type, value) {
   const bounds = rangeForType(type)
   return value < bounds.min || value > bounds.max

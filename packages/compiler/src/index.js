@@ -5,3 +5,5 @@ export { Token, TokenKind, TokenCursor, KEYWORDS, KEYWORD_VALUES } from "./contr
 export { Diagnostic, DiagnosticBag, DiagnosticSeverity, SourceLocation, SourceSpan } from "./contracts/diagnostics.js"
 export { Type, TypeKind, NumericKind, BUILTIN_TYPES, narrowestIntegerType, valueRange, promotedNumericType, rangeForType, canOverflow } from "./types.js"
 export { Symbol, Scope, TypeInferrer } from "./analyzer.js"
+export { compile, CompilationResult } from "./compile.js"
+export { CodeGenerator, generateC } from "./codegen.js"

@@ -1,6 +1,6 @@
 import { DiagnosticBag } from "./contracts/diagnostics.js"
 import { NodeKind } from "./ast.js"
-import { Type, TypeKind, BUILTIN_TYPES, narrowestIntegerType, valueRange, promotedNumericType, rangeForType, canOverflow } from "./types.js"
+import { Type, TypeKind, BUILTIN_TYPES, narrowestIntegerType, valueRange, promotedNumericType, canOverflow, signedType } from "./types.js"
 
 export class Symbol {
   constructor(name, kind, type, node, mutable = false) {
@@ -162,6 +162,7 @@ export class TypeInferrer {
     const previous = this.currentScope
     this.currentScope = previous.child()
     for (const param of declaration.params) {
+      param.type = Type.unknown()
       this.currentScope.define(new Symbol(this.bindingName(param), "parameter", Type.unknown(), param, true))
     }
     this.inferStatement(declaration.body)
@@ -175,6 +176,7 @@ export class TypeInferrer {
       this.currentScope = previous.child()
       this.currentScope.define(new Symbol("this", "this", Type.object(fields), declaration.id, false))
       for (const param of method.value.params) {
+        param.type = Type.unknown()
         this.currentScope.define(new Symbol(this.bindingName(param), "parameter", Type.unknown(), param, true))
       }
       this.inferStatement(method.value.body)
@@ -227,6 +229,8 @@ export class TypeInferrer {
         const argument = this.inferExpression(node.argument)
         if (node.operator === "!" || node.operator === "typeof") {
           node.type = Type.bool()
+        } else if (node.operator === "-" && argument.isNumeric()) {
+          node.type = signedType(argument)
         } else {
           node.type = argument
         }
@@ -391,5 +395,3 @@ export class TypeInferrer {
     return "<pattern>"
   }
 }
-
-export { BUILTIN_TYPES, rangeForType }

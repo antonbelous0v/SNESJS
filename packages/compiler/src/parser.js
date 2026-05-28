@@ -33,10 +33,10 @@ const PRECEDENCE = {
 const ASSIGNMENT_OPERATORS = new Set(["=", "+=", "-=", "*=", "/=", "%=", "<<=", ">>=", ">>>=", "&=", "|=", "^=", "**="])
 
 export class Parser {
-  constructor(source, diagnostics = new DiagnosticBag()) {
+  constructor(source, diagnostics = new DiagnosticBag(), tokens = null) {
     this.source = source
     this.diagnostics = diagnostics
-    this.cursor = new TokenCursor(new Lexer(source, diagnostics).tokenize())
+    this.cursor = new TokenCursor(tokens ?? new Lexer(source, diagnostics).tokenize())
   }
 
   parse() {
