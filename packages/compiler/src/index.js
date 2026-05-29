@@ -7,3 +7,6 @@ export { Type, TypeKind, NumericKind, BUILTIN_TYPES, narrowestIntegerType, value
 export { Symbol, Scope, TypeInferrer } from "./analyzer.js"
 export { compile, CompilationResult } from "./compile.js"
 export { CodeGenerator, generateC } from "./codegen.js"
+export { ResourceAnalyzer, ResourceBudget, SceneResources, AssetResources, HARDWARE_BUDGETS, formatBytes } from "./resources.js"
+export { Tile, TileDeduplicator, deduplicateTiles, reverseBits, tileBytes, savedBytes } from "./tiles.js"
+export { BuildReport } from "./report.js"
