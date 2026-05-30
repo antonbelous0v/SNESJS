@@ -212,7 +212,11 @@ export class CodeGenerator {
     const name = declaration.id.name
     const params = declaration.params.map(param => `${this.parameterType(param)} ${this.bindingName(param)}`).join(", ")
     this.line(`${this.returnType(declaration)} ${name}(${params}) {`)
-    this.indent(() => this.emitStatement(declaration.body))
+    this.indent(() => {
+      for (const statement of declaration.body.body) {
+        this.emitStatement(statement)
+      }
+    })
     this.line(`}`)
     this.line(``)
   }
@@ -225,7 +229,11 @@ export class CodeGenerator {
       }
       const params = method.value.params.map(param => `${this.parameterType(param)} ${this.bindingName(param)}`).join(", ")
       this.line(`${this.returnType(method.value)} ${className}_${method.key}(${className}* self${params ? ", " + params : ""}) {`)
-      this.indent(() => this.emitStatement(method.value.body))
+      this.indent(() => {
+        for (const statement of method.value.body.body) {
+          this.emitStatement(statement)
+        }
+      })
       this.line(`}`)
       this.line(``)
     }
@@ -328,8 +336,8 @@ export class CodeGenerator {
     if (callee.kind === NodeKind.Identifier) {
       return callee.name
     }
-    if (callee.kind === NodeKind.MemberExpression) {
-      return `${this.emitExpression(callee.object)}_${callee.property}`
+    if (callee.kind === NodeKind.MemberExpression && callee.object.kind === NodeKind.ThisExpression) {
+      return `self->${callee.property}`
     }
     return this.emitExpression(callee)
   }

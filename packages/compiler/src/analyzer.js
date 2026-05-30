@@ -42,12 +42,27 @@ export class Scope {
   }
 }
 
+const SDK_GLOBALS = Object.freeze([
+  "Game", "Scene", "Sprite", "Animation", "Camera", "Input", "Audio", "Save",
+  "TileMap", "Background", "Collision", "Timer", "Tween", "Effects", "Mode7",
+  "Text", "UI", "Dialogue", "Events", "Random", "Mathx", "Trig", "Pool",
+  "EntityPool", "ParticleSystem", "StateMachine", "Cutscene", "AI", "Path",
+  "asset", "paletteGroup", "raw", "native", "unsafe", "assert", "buildTime",
+])
+
 export class TypeInferrer {
   constructor(diagnostics = new DiagnosticBag()) {
     this.diagnostics = diagnostics
     this.globalScope = new Scope()
     this.currentScope = this.globalScope
     this.classes = new Map()
+    this.registerSdkGlobals()
+  }
+
+  registerSdkGlobals() {
+    for (const name of SDK_GLOBALS) {
+      this.globalScope.define(new Symbol(name, "sdk", Type.unknown(), null, false))
+    }
   }
 
   infer(program) {

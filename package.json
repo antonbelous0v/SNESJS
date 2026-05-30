@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Statically compiled JavaScript game engine and toolchain for the Super Nintendo Entertainment System",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "test": "node --test packages/*/test/*.test.js",
     "test:compiler": "node --test packages/compiler/test/*.test.js",
