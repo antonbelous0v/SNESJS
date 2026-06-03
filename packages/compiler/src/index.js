@@ -12,3 +12,5 @@ export { Tile, TileDeduplicator, deduplicateTiles, reverseBits, tileBytes, saved
 export { BuildReport } from "./report.js"
 export { rgb555, unpack555, collectUniqueColors, quantizePalette, groupSharedPalette, paletteDeltaE, colorError, paletteBytes } from "./palette.js"
 export { BitmapImage, extractTiles, pixelsToIndices, indicesToBitplanes, tileToBitplanes, bitplaneByteCount } from "./bitmap.js"
+export { decodePng, PngDecodeError } from "./png.js"
+export { fixed, toFloat, mulFixed, divFixed, lerp, TrigTable, DeterministicRandom, Mathx, Trig, FIXED_SCALE } from "./fixed_math.js"
