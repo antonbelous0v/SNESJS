@@ -14,3 +14,4 @@ export { rgb555, unpack555, collectUniqueColors, quantizePalette, groupSharedPal
 export { BitmapImage, extractTiles, pixelsToIndices, indicesToBitplanes, tileToBitplanes, bitplaneByteCount } from "./bitmap.js"
 export { decodePng, PngDecodeError } from "./png.js"
 export { fixed, toFloat, mulFixed, divFixed, lerp, TrigTable, DeterministicRandom, Mathx, Trig, FIXED_SCALE } from "./fixed_math.js"
+export { SourceMapEntry, SourceMapGenerator, buildSourceMap } from "./sourcemap.js"
