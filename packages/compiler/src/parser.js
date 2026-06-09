@@ -594,19 +594,36 @@ export class Parser {
         : this.cursor.expectIdentifier().value
       let value
       let shorthand = false
-      if (this.cursor.matchPunctuator(":")) {
+      let isMethod = false
+      if (this.cursor.matchPunctuator("(")) {
+        value = this.finishMethod(keyToken)
+        isMethod = true
+      } else if (this.cursor.matchPunctuator(":")) {
         value = this.assignment()
       } else {
         value = make(NodeKind.Identifier, this.cursor.previous().span, { name: key })
         shorthand = true
       }
-      properties.push(make(NodeKind.Property, { start: this.cursor.previous().span.start, end: value.span.end }, { key, value, shorthand }))
+      properties.push(make(NodeKind.Property, { start: this.cursor.previous().span.start, end: value.span.end }, { key, value, shorthand, method: isMethod }))
       if (!this.cursor.matchPunctuator(",")) {
         this.cursor.expectPunctuator("}")
         break
       }
     }
     return make(NodeKind.ObjectExpression, { start, end: this.cursor.previous().span.end }, { properties })
+  }
+
+  finishMethod(keyToken) {
+    const params = []
+    while (!this.cursor.matchPunctuator(")")) {
+      params.push(this.parseBinding())
+      if (!this.cursor.matchPunctuator(",")) {
+        this.cursor.expectPunctuator(")")
+        break
+      }
+    }
+    const body = this.blockStatement()
+    return make(NodeKind.FunctionExpression, { start: keyToken.span.start, end: body.span.end }, { id: null, params, body })
   }
 
   arrowBody(start, params) {

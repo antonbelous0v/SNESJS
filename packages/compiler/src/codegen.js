@@ -28,6 +28,7 @@ export class CodeGenerator {
     this.indentLevel = 0
     this.classFields = new Map()
     this.functionNames = new Map()
+    this.sceneUpdateName = null
   }
 
   generate(ast) {
@@ -103,7 +104,7 @@ export class CodeGenerator {
         this.emitVariableDeclaration(statement)
         return
       case NodeKind.ExpressionStatement:
-        this.line(`${this.stripOuterParens(this.emitExpression(statement.expression))};`)
+        this.emitExpressionStatement(statement)
         return
       case NodeKind.IfStatement:
         this.emitIf(statement)
@@ -255,6 +256,9 @@ export class CodeGenerator {
         if (hasUpdate) {
           this.line(`update();`)
         }
+        if (this.sceneUpdateName) {
+          this.line(`${this.sceneUpdateName}();`)
+        }
         this.line(`sj_flush_dma();`)
         this.line(`sj_oam_upload();`)
       })
@@ -294,6 +298,8 @@ export class CodeGenerator {
         return `{ ${node.elements.filter(element => element !== null).map(element => this.emitExpression(element)).join(", ")} }`
       case NodeKind.NewExpression:
         return `{ ${node.arguments.map(argument => this.emitExpression(argument)).join(", ")} }`
+      case NodeKind.ObjectExpression:
+        return this.emitObject(node)
       case NodeKind.TemplateLiteral:
         return this.emitTemplate(node)
       case NodeKind.ArrowFunctionExpression:
@@ -301,6 +307,16 @@ export class CodeGenerator {
       default:
         return ""
     }
+  }
+
+  emitObject(node) {
+    const fields = node.properties.map(property => {
+      if (property.method) {
+        return `/* method ${property.key} */`
+      }
+      return `/* ${property.key} */`
+    })
+    return `{ ${fields.join(", ")} }`
   }
 
   emitLiteral(node) {
@@ -409,8 +425,47 @@ export class CodeGenerator {
     return text
   }
 
+  emitExpressionStatement(statement) {
+    const expression = statement.expression
+    if (expression.kind === NodeKind.CallExpression && expression.callee.kind === NodeKind.MemberExpression) {
+      const calleeName = expression.callee.object.kind === NodeKind.Identifier ? expression.callee.object.name : ""
+      const methodName = expression.callee.property
+      if (calleeName === "Scene" && methodName === "define") {
+        this.emitSceneDefine(expression)
+        return
+      }
+      if (calleeName === "Game" && methodName === "start") {
+        this.line(`/* Game.start(${expression.arguments.map(argument => this.emitExpression(argument)).join(", ")}) */`)
+        return
+      }
+    }
+    this.line(`${this.stripOuterParens(this.emitExpression(expression))};`)
+  }
+
   line(text) {
     this.output.push("  ".repeat(this.indentLevel) + text)
+  }
+
+  emitSceneDefine(expression) {
+    const sceneName = expression.arguments[0] ? this.emitExpression(expression.arguments[0]) : "main"
+    this.line(`/* Scene.define(${sceneName}) */`)
+    const config = expression.arguments[1]
+    if (config && config.kind === NodeKind.ObjectExpression) {
+      for (const property of config.properties) {
+        if (property.method && property.value.kind === NodeKind.FunctionExpression) {
+          this.sceneUpdateName = `scene_${property.key}`
+          const params = property.value.params.map(param => `${this.parameterType(param)} ${this.bindingName(param)}`).join(", ")
+          this.line(`void ${this.sceneUpdateName}(${params}) {`)
+          this.indent(() => {
+            for (const child of property.value.body.body) {
+              this.emitStatement(child)
+            }
+          })
+          this.line(`}`)
+          this.line(``)
+        }
+      }
+    }
   }
 
   indent(action) {

@@ -47,7 +47,7 @@ const SDK_GLOBALS = Object.freeze([
   "TileMap", "Background", "Collision", "Timer", "Tween", "Effects", "Mode7",
   "Text", "UI", "Dialogue", "Events", "Random", "Mathx", "Trig", "Pool",
   "EntityPool", "ParticleSystem", "StateMachine", "Cutscene", "AI", "Path",
-  "asset", "paletteGroup", "raw", "native", "unsafe", "assert", "buildTime",
+  "asset", "assets", "paletteGroup", "raw", "native", "unsafe", "assert", "buildTime",
 ])
 
 export class TypeInferrer {
