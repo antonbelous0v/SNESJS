@@ -15,3 +15,4 @@ export { BitmapImage, extractTiles, pixelsToIndices, indicesToBitplanes, tileToB
 export { decodePng, PngDecodeError } from "./png.js"
 export { fixed, toFloat, mulFixed, divFixed, lerp, TrigTable, DeterministicRandom, Mathx, Trig, FIXED_SCALE } from "./fixed_math.js"
 export { SourceMapEntry, SourceMapGenerator, buildSourceMap } from "./sourcemap.js"
+export { SaveSchema, SaveData, serializeSave, deserializeSave, checksum16, migrateSave } from "./save.js"
