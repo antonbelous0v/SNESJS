@@ -17,3 +17,4 @@ export { fixed, toFloat, mulFixed, divFixed, lerp, TrigTable, DeterministicRando
 export { SourceMapEntry, SourceMapGenerator, buildSourceMap } from "./sourcemap.js"
 export { SaveSchema, SaveData, serializeSave, deserializeSave, checksum16, migrateSave } from "./save.js"
 export { FixedArray, Pool, RingBuffer, BitSet, Queue } from "./containers.js"
+export { Aabb, aabbOverlap, pointInAabb, GridBroadphase, TileCollision } from "./collision.js"
