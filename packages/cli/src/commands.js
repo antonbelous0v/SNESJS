@@ -52,7 +52,7 @@ export function doctor() {
 }
 
 function buildReport(project) {
-  const scenes = (project.config.scenes ?? []).map(scene => {
+  const scenes = (project.config.scenes ?? []).map((scene) => {
     const resources = new SceneResources(scene.name)
     for (const asset of scene.assets ?? []) {
       resources.add(new AssetResources({

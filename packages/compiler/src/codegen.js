@@ -310,7 +310,7 @@ export class CodeGenerator {
   }
 
   emitObject(node) {
-    const fields = node.properties.map(property => {
+    const fields = node.properties.map((property) => {
       if (property.method) {
         return `/* method ${property.key} */`
       }

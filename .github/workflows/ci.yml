@@ -1,0 +1,21 @@
+name: snesjs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm run benchmark
+      - run: npm run lint
+      - run: node packages/cli/bin/snes.js doctor --root examples/hello
+      - run: node packages/cli/bin/snes.js build --root examples/hello

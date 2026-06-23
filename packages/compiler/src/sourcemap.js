@@ -80,7 +80,7 @@ function nodeSymbolName(node) {
 
 export function buildSourceMap(ast, sourceFile = "main.js") {
   const generator = new SourceMapGenerator()
-  walk(ast, node => {
+  walk(ast, (node) => {
     if (node.kind === NodeKind.VariableDeclarator) {
       generator.mapNode(node, node.id.kind === NodeKind.Identifier ? node.id.name : "<binding>")
       return

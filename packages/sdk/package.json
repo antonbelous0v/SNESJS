@@ -1,0 +1,12 @@
+{
+  "name": "@snesjs/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SNESJS SDK facade and TypeScript definitions for game code",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  }
+}

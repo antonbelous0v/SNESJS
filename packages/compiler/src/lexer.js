@@ -148,7 +148,7 @@ export class Lexer {
       return ""
     }
     const char = this.source[this.position]
-    const escapes = { n: "\n", t: "\t", r: "\r", b: "\b", f: "\f", v: "\v", "0": "\0" }
+    const escapes = { n: "\n", t: "\t", r: "\r", b: "\b", f: "\f", v: "\v", 0: "\0" }
     if (char in escapes) {
       this.advance()
       return escapes[char]

@@ -79,7 +79,7 @@ export function paletteDeltaE(colors) {
   if (colors.length === 0) {
     return { average: 0, max: 0 }
   }
-  const errors = colors.map(color => {
+  const errors = colors.map((color) => {
     const quantized = rgb555(color.red, color.green, color.blue)
     return colorError([color.red, color.green, color.blue], quantized)
   })
