@@ -18,3 +18,4 @@ export { SourceMapEntry, SourceMapGenerator, buildSourceMap } from "./sourcemap.
 export { SaveSchema, SaveData, serializeSave, deserializeSave, checksum16, migrateSave } from "./save.js"
 export { FixedArray, Pool, RingBuffer, BitSet, Queue } from "./containers.js"
 export { Aabb, aabbOverlap, pointInAabb, GridBroadphase, TileCollision } from "./collision.js"
+export { AssetCompiler, CompiledSpriteAsset, compileSpriteAsset } from "./asset_compiler.js"
