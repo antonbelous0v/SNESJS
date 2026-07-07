@@ -19,3 +19,4 @@ export { SaveSchema, SaveData, serializeSave, deserializeSave, checksum16, migra
 export { FixedArray, Pool, RingBuffer, BitSet, Queue } from "./containers.js"
 export { Aabb, aabbOverlap, pointInAabb, GridBroadphase, TileCollision } from "./collision.js"
 export { AssetCompiler, CompiledSpriteAsset, compileSpriteAsset } from "./asset_compiler.js"
+export { RomPlanner, RomLayout, RomBank, chooseRomMapping } from "./rom.js"
