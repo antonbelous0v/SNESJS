@@ -91,3 +91,19 @@ test("renders a text build report with budgets", () => {
   assert.equal(json.scenes[0].name, "forest")
   assert.equal(json.hardware.vramBytes, 65536)
 })
+
+test("renders an HTML build report with budget tables", () => {
+  const scene = new SceneResources("forest")
+  scene.add(new AssetResources({ type: "bg", name: "tiles", vramBytes: 64000 }))
+  const analysis = new ResourceAnalyzer().analyze(scene)
+
+  const report = new BuildReport({ scenes: [analysis], warnings: ["DMA budget risk"], metrics: { romBytes: 1024 * 1024 } })
+  const html = report.renderHtml()
+
+  assert.match(html, /<!doctype html>/)
+  assert.match(html, /SNESJS build report/)
+  assert.match(html, /<table>/)
+  assert.match(html, /VRAM/)
+  assert.match(html, /DMA budget risk/)
+  assert.match(html, /1.0 MiB/)
+})

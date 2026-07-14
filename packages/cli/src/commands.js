@@ -27,6 +27,7 @@ export async function build(root) {
 
   const report = buildReport(project)
   fs.writeFileSync(path.join(root, "build", "report.json"), JSON.stringify(report.toJSON(), null, 2))
+  fs.writeFileSync(path.join(root, "build", "report.html"), report.renderHtml())
   process.stdout.write(`\n${report.renderText()}\n`)
   return { success: true, generated }
 }
