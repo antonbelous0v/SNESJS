@@ -15,13 +15,12 @@ static const u8 snesjs_sprite_palette[32] = {
 };
 
 void sj_init(void) {
-    consoleInit();
     setMode(BG_MODE1, 0);
     setColor(0, RGB(0, 0, 12));
     dmaCopyVram(snesjs_sprite_tile, 0x0000, 32);
     dmaCopyCGram(snesjs_sprite_palette, OBJ_CGRAM_BASE, 32);
     oamInit(OBJ_SIZE8_L16, 0);
-    setMainScreen(LAYER_BG1 | LAYER_OBJ);
+    setMainScreen(LAYER_OBJ);
     setScreenOn();
 }
 
