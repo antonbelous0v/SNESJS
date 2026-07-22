@@ -59,7 +59,7 @@ export function pixelsToIndices(pixels, palette) {
 }
 
 export function indicesToBitplanes(indices) {
-  const rows = []
+  const planes = [[], [], [], []]
   for (let y = 0; y < 8; y += 1) {
     let plane0 = 0
     let plane1 = 0
@@ -73,9 +73,19 @@ export function indicesToBitplanes(indices) {
       plane2 |= ((value >> 2) & 1) << bit
       plane3 |= ((value >> 3) & 1) << bit
     }
-    rows.push(plane0, plane1, plane2, plane3)
+    planes[0][y] = plane0
+    planes[1][y] = plane1
+    planes[2][y] = plane2
+    planes[3][y] = plane3
   }
-  return rows
+  const bytes = []
+  for (let y = 0; y < 8; y += 1) {
+    bytes.push(planes[0][y], planes[1][y])
+  }
+  for (let y = 0; y < 8; y += 1) {
+    bytes.push(planes[2][y], planes[3][y])
+  }
+  return bytes
 }
 
 export function tileToBitplanes(tile) {

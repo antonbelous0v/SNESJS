@@ -64,6 +64,6 @@ test("encodes palette indices as 4bpp bitplanes", () => {
   assert.equal(rows.length, 32)
   assert.equal(rows[0], 0b00000000)
   assert.equal(rows[1], 0b10000000)
-  assert.equal(rows[2], 0b00000000)
-  assert.equal(rows[3], 0b10000000)
+  assert.equal(rows[16], 0b00000000)
+  assert.equal(rows[17], 0b10000000)
 })
