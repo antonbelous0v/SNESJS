@@ -1,20 +1,27 @@
 # SNESJS
 
-You write a game in ordinary JavaScript, it compiles down to a real `.sfc` that boots in an emulator and on actual hardware. That's the whole project. Everything below is details, and I'll try not to belabor the boring ones.
+Statically compiled JavaScript game engine and toolchain for the Super Nintendo Entertainment System. You write games in ordinary JavaScript; the compiler turns them into a real `.sfc` ROM that runs in an emulator and on actual hardware.
 
-## Does it work?
+## Does it work
 
-Yeah. Built `examples/hello`, ran it in [luna](https://github.com/k0b3n4irb/luna), sprite's there, game loop's spinning, frame isn't black. Not gonna paste the emulator output — if you don't believe me, build it yourself, it's three commands.
+Yes. `examples/hello` builds to a ROM and boots in the cycle-accurate [luna](https://github.com/k0b3n4irb/luna) emulator:
+
+```text
+INIDISP=$0F   BGMODE=$01
+visible sprites: 1
+sprite #0: x=112 y=95 tile=$000 pal=0
+frames=30 NMIs_served=28
+```
 
 ## Quick start
 
-Install the backend once (clones OpenSNES at a pinned commit and builds its 65816 compiler, takes a couple minutes):
+Install the backend once — it clones OpenSNES at a pinned commit and builds its 65816 compiler:
 
 ```bash
 bash scripts/install-sdk.sh
 ```
 
-Then the whole project is two files. `snes.config.js`:
+A project is two files. `snes.config.js`:
 
 ```js
 export default {
@@ -28,7 +35,7 @@ export default {
 }
 ```
 
-And `src/main.js`:
+`src/main.js`:
 
 ```js
 import { Input } from "snes"
@@ -37,7 +44,7 @@ let x = 112
 let y = 96
 
 function setup() {
-  sj_sprite_create(0, x, y)
+  sj_sprite_create(0, 0, 0, x, y)
 }
 
 function update() {
@@ -49,48 +56,52 @@ function update() {
 }
 ```
 
-`snes build` → `dist/game.sfc`. Done. `snes doctor` checks the toolchain, `snes analyze` just prints budgets without compiling anything.
+Build it:
+
+```bash
+snes build
+```
+
+Output: `dist/game.sfc`. `snes doctor` checks the toolchain, `snes analyze` prints resource budgets without compiling.
 
 ## setup() and update()
 
-The engine looks for two functions, names are a convention, not magic. `setup()` runs once at boot while the screen's off, `update()` runs every frame after input is polled. You don't write a game loop — it's generated for you, you'll never see the `while(1)` and the VBlank waits. No `setup`? Fine, it just skips it.
+The engine calls two functions by convention. `setup()` runs once at boot, `update()` runs every frame. The game loop is generated for you.
 
 ## Input
-
-The one high-level thing that's actually wired to the hardware:
 
 ```js
 Input.down("LEFT")        // held
 Input.pressed("A")        // went down this frame
 Input.released("B")       // went up this frame
 Input.axis("horizontal")  // -1 / 0 / +1
+Input.axis("vertical")    // -1 / 0 / +1
 ```
 
-Buttons are strings: `LEFT RIGHT UP DOWN A B X Y L R SELECT START`. Nothing else to explain, `axis` is just right-minus-left, it's obvious. Compiles to `padHeld(0) & KEY_LEFT`, so it costs exactly what it costs on the hardware.
+Buttons: `LEFT`, `RIGHT`, `UP`, `DOWN`, `A`, `B`, `X`, `Y`, `L`, `R`, `SELECT`, `START`. These compile to `padHeld` / `padPressed` / `padReleased` register reads.
 
-## The raw API
+## Raw API
 
-Everything the friendly layer doesn't wrap yet lives in these `sj_*` functions, which the compiler already knows:
+Low-level `sj_*` functions map directly onto OpenSNES:
 
 ```js
-sj_sprite_create(0, x, y)
-sj_sprite_set_pos(0, x, y)
+sj_sprite_create(id, tile, palette, x, y)
+sj_sprite_set_pos(id, x, y)
+sj_sprite_set_tile(id, tile)
+sj_sprite_hide(id)
 sj_wait_vblank()
-sj_scene_change("forest")
-sj_audio_play_sfx(0, 1)
+sj_random()
 ```
 
-Names speak for themselves, not gonna explain each one. They're all in one file, `packages/compiler/runtime/snesjs_runtime.c`, so backend changes only touch that file.
+They live in `packages/compiler/runtime/snesjs_runtime.c`.
 
-## What language this is
+## Language subset
 
-JavaScript, but a trimmed subset, because the SNES has no GC and no runtime. Objects, arrays, `if/for/while`, functions, classes, `switch`, template strings, `import` — all there. No `eval`, `Promise`, `async/await`, `try/catch`, `Proxy`, dynamic keys, escaping closures. Write a forbidden thing and the error explains it like a person instead of dumping a stack trace.
-
-A class compiles to a C struct with functions, `this.hp` becomes `self->hp`. You don't need to care beyond that.
+Objects, arrays, `if` / `for` / `while`, functions, classes, `switch`, template strings, ES modules. No `eval`, `Promise`, `async`/`await`, `try`/`catch`, `Proxy`, dynamic keys, or escaping closures. Classes compile to C structs with functions (`this.hp` → `self->hp`).
 
 ## Types
 
-The 65816 has no floats, so a JS `number` doesn't fit here — the compiler infers the smallest integer type for you:
+The 65816 has no floating-point hardware, so the compiler infers the smallest integer type:
 
 ```js
 let lives = 3     // u8
@@ -98,19 +109,17 @@ let accel = 0.25  // fixed16
 let coins = 1000  // u16
 ```
 
-Overflow it can see at compile time becomes a warning, not silent memory corruption. That's basically the entire pitch: hardware limits show up as warnings in your terminal, not as a bug three days later.
+Type helpers override inference: `u8(x)`, `i16(x)`, `u16(x)`, `i8(x)`. Statically visible overflow produces a warning.
 
 ## snes.config.js
 
-It reads three fields, table:
-
 | Field | Meaning |
 |---|---|
-| `name` | Game name, goes in the ROM header, keep it under 21 chars |
-| `entry` | Path to your main JS, defaults to `src/main.js` |
+| `name` | ROM header name, under 21 characters |
+| `entry` | Main JS file, defaults to `src/main.js` |
 | `scenes` | Scenes with assets, for the budget report |
 
-An asset is `{ type, name, tiles, colors, sprites }` — or raw `vramBytes` / `cgramColors` / `oamSprites` if you already know the byte counts. The point is `snes analyze` tells you ahead of time whether a scene fits in the hardware:
+Assets are declared as `{ type, name, tiles, colors, sprites }`, or with raw `vramBytes` / `cgramColors` / `oamSprites`. `snes analyze` reports them against real hardware limits:
 
 ```text
 SCENE FOREST
@@ -119,19 +128,20 @@ SCENE FOREST
   OAM sprites           8 / 128
 ```
 
-Doesn't fit? You get an `E4201` with a breakdown, not a ROM that silently breaks on the console.
+Over budget → `E4201` with a breakdown.
 
-## What build produces
+## Build output
 
-`dist/game.sfc` — the ROM. `dist/game.sym` — symbols for debuggers. `build/report.html` — the budgets. Generated C lands in `build/generated/` if you ever want to see why something's slow.
+- `dist/game.sfc` — the ROM.
+- `dist/game.sym` — symbol table.
+- `build/report.html` — budgets, plus `build/report.json`.
+- `build/generated/` — the generated C.
 
 ## Example games
 
-Three of them, all build and run:
-
-- `examples/hello` — one sprite, move it with the D-pad. Minimal, but exercises the whole pipeline.
-- `examples/slime-knight` — a knight, slimes, grass, gravity and collision.
-- `examples/doodle-jump` — a Doodle Jump clone: four platform types, scrolling, score, best score, menu, pause, game over.
+- `examples/hello` — one sprite, D-pad movement.
+- `examples/slime-knight` — knight, slimes, tiled floor, gravity, collision.
+- `examples/doodle-jump` — Doodle Jump clone: four platform types, scrolling, score, menu, pause, game over.
 
 ```bash
 cd examples/doodle-jump
@@ -140,19 +150,17 @@ luna-gui dist/game.sfc
 # arrows to move, SELECT to pause, A to start / restart
 ```
 
-The last two live in `examples/` but aren't committed to git — they're drafts.
-
-## The pipeline
+## Pipeline
 
 ```text
 JavaScript → lexer/parser → types → C11 → OpenSNES (cc65816/QBE/WLA-DX) → 65816 → game.sfc
 ```
 
-The `sj_*` layer between generated C and OpenSNES exists so a backend upgrade doesn't take down the compiler. The backend is pinned by commit in `snes.lock`. Boring but important.
+Generated C calls the `sj_*` ABI; OpenSNES is pinned by commit in `snes.lock`.
 
-## Honest state of things
+## Status
 
-The foundation is real: the whole JS→ROM path, types, the resource planner, diagnostics that point at your source line, fixed-point math, tile dedup, palettes, checksummed saves, collision. What's thin is the top of the stack: metasprites, Tiled import, music (SNESMOD), HDMA/Mode7. Those are layers on top of a working pipeline, not a missing foundation. I'm not going to pretend they're done.
+Done and proven: the JS→ROM pipeline, type system, resource planner, source-mapped diagnostics, fixed-point math, tile deduplication, palettes, checksummed saves, collision. Not yet done: metasprites, Tiled import, music (SNESMOD), HDMA/Mode7.
 
 ## Development
 
@@ -162,4 +170,4 @@ npm test
 npm run lint
 ```
 
-Errors show the line, a caret, and a suggestion — not `cc65816: error in generated_29.c`, which is the thing that makes people delete the project and take up pottery.
+Diagnostics point at the source line with a caret and a suggestion.
