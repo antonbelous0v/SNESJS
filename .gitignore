@@ -7,4 +7,7 @@ dist/
 packages/*/build/
 vendor/
 examples/*/build/
-snesjs_engine_spec.md
+snesjs_engine_spec.mdexamples/*/assets/*.pic
+examples/*/assets/*.pal
+examples/*/assets/*.inc
+examples/*/assets/*_data.as
