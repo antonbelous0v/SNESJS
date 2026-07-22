@@ -48,6 +48,8 @@ const SDK_GLOBALS = Object.freeze([
   "Text", "UI", "Dialogue", "Events", "Random", "Mathx", "Trig", "Pool",
   "EntityPool", "ParticleSystem", "StateMachine", "Cutscene", "AI", "Path",
   "asset", "assets", "paletteGroup", "raw", "native", "unsafe", "assert", "buildTime",
+  "sj_init", "sj_wait_vblank", "sj_poll_input", "sj_flush_dma", "sj_oam_upload",
+  "sj_sprite_create", "sj_sprite_set_pos", "sj_scene_change", "sj_audio_play_sfx", "sj_tilemap_scroll",
 ])
 
 export class TypeInferrer {

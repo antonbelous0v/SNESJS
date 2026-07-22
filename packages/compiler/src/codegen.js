@@ -343,9 +343,41 @@ export class CodeGenerator {
   }
 
   emitCall(node) {
+    const input = this.emitInputCall(node)
+    if (input !== null) {
+      return input
+    }
     const callee = this.emitCallee(node.callee)
     const args = node.arguments.map(argument => this.emitExpression(argument)).join(", ")
     return `${callee}(${args})`
+  }
+
+  emitInputCall(node) {
+    if (node.callee.kind !== NodeKind.MemberExpression || node.callee.object.kind !== NodeKind.Identifier || node.callee.object.name !== "Input") {
+      return null
+    }
+    const method = node.callee.property
+    const argument = node.arguments[0]
+    const name = argument && argument.kind === NodeKind.Literal ? argument.value : ""
+    const buttons = { LEFT: "KEY_LEFT", RIGHT: "KEY_RIGHT", UP: "KEY_UP", DOWN: "KEY_DOWN", A: "KEY_A", B: "KEY_B", X: "KEY_X", Y: "KEY_Y", L: "KEY_L", R: "KEY_R", SELECT: "KEY_SELECT", START: "KEY_START" }
+    if (method === "down") {
+      return `(padHeld(0) & ${buttons[name] ?? 0})`
+    }
+    if (method === "pressed") {
+      return `(padPressed(0) & ${buttons[name] ?? 0})`
+    }
+    if (method === "released") {
+      return `(padReleased(0) & ${buttons[name] ?? 0})`
+    }
+    if (method === "axis") {
+      if (name === "horizontal") {
+        return `(((padHeld(0) & KEY_RIGHT) ? 1 : 0) - ((padHeld(0) & KEY_LEFT) ? 1 : 0))`
+      }
+      if (name === "vertical") {
+        return `(((padHeld(0) & KEY_DOWN) ? 1 : 0) - ((padHeld(0) & KEY_UP) ? 1 : 0))`
+      }
+    }
+    return null
   }
 
   emitCallee(callee) {

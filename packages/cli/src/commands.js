@@ -1,9 +1,9 @@
 import fs from "node:fs"
 import path from "node:path"
-import { execFileSync } from "node:child_process"
 
 import { compile, generateC, ResourceAnalyzer, SceneResources, AssetResources, BuildReport } from "@snesjs/compiler"
 import { loadProject } from "./project.js"
+import { buildRom, findSdk } from "./rom_build.js"
 
 export async function build(root) {
   const project = await loadProject(root)
@@ -21,7 +21,7 @@ export async function build(root) {
     const c = generateC(result.ast)
     const target = path.join(outputDirectory, path.basename(file, ".js") + ".gen.c")
     fs.writeFileSync(target, c)
-    generated.push({ file, target })
+    generated.push({ file, target, c })
     process.stdout.write(`✓ ${path.relative(root, file)}\n`)
   }
 
@@ -29,6 +29,18 @@ export async function build(root) {
   fs.writeFileSync(path.join(root, "build", "report.json"), JSON.stringify(report.toJSON(), null, 2))
   fs.writeFileSync(path.join(root, "build", "report.html"), report.renderHtml())
   process.stdout.write(`\n${report.renderText()}\n`)
+
+  const sdk = findSdk(root)
+  if (sdk) {
+    process.stdout.write(`\nOpenSNES SDK found, building ROM ...\n`)
+    const rom = buildRom(root, generated[0].c, { name: project.name })
+    if (rom.ok) {
+      process.stdout.write(`✓ ${rom.sfc} (${rom.size} bytes)\n`)
+    } else {
+      process.stderr.write(`✗ ROM build failed: ${rom.reason}\n`)
+    }
+  }
+
   return { success: true, generated }
 }
 
@@ -39,12 +51,18 @@ export async function analyze(root) {
   return report
 }
 
-export function doctor() {
+export function doctor(root = process.cwd()) {
   const checks = []
   checks.push(checkNode())
-  checks.push(checkTool("cc65816", "OpenSNES compiler"))
-  checks.push(checkTool("gcc", "host C compiler", checkTool("clang", "host C compiler")))
-  checks.push(checkTool("wla-65816", "WLA-DX assembler"))
+
+  const sdk = findSdk(root)
+  if (sdk) {
+    checks.push({ ok: true, label: "OpenSNES SDK", detail: `vendored at ${sdk}` })
+    checks.push(checkTool(`${sdk}/bin/cc65816`, "cc65816"))
+    checks.push(checkTool(`${sdk}/bin/wla-65816`, "wla-65816"))
+  } else {
+    checks.push({ ok: false, label: "OpenSNES SDK", detail: "not found — run scripts/install-sdk.sh" })
+  }
 
   for (const check of checks) {
     process.stdout.write(`${check.ok ? "✓" : "✗"} ${check.label}${check.detail ? ` (${check.detail})` : ""}\n`)
@@ -77,8 +95,14 @@ function checkNode() {
 
 function checkTool(command, label, fallback = null) {
   try {
-    const output = execFileSync(command, ["--version"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim()
-    return { ok: true, label, detail: output.split("\n")[0] }
+    if (!fs.existsSync(command)) {
+      if (fallback) {
+        return fallback()
+      }
+      return { ok: false, label, detail: "not found" }
+    }
+    fs.accessSync(command, fs.constants.X_OK)
+    return { ok: true, label, detail: command }
   } catch {
     if (fallback) {
       return fallback()

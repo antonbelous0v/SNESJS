@@ -1,0 +1,10 @@
+{
+  "opensnes": {
+    "commit": "5e21ccfe80720f7ffffc739bb1db6165b0a96eea",
+    "version": "v0.47.0",
+    "abi": 1
+  },
+  "snesjs": {
+    "runtimeAbi": 1
+  }
+}

@@ -1,18 +1,16 @@
-import { Game, Scene, Sprite, Input } from "snes"
+import { Input } from "snes"
 
-const player = Sprite.create({
-  texture: assets.player,
-  x: 120,
-  y: 100
-})
+let x = 112
+let y = 96
 
-Scene.define("main", {
-  update() {
-    if (Input.down("LEFT")) player.x -= 1
-    if (Input.down("RIGHT")) player.x += 1
-    if (Input.down("UP")) player.y -= 1
-    if (Input.down("DOWN")) player.y += 1
-  }
-})
+function setup() {
+  sj_sprite_create(0, x, y)
+}
 
-Game.start("main")
+function update() {
+  if (Input.down("LEFT") && x > 0) x -= 1
+  if (Input.down("RIGHT") && x < 255) x += 1
+  if (Input.down("UP") && y > 0) y -= 1
+  if (Input.down("DOWN") && y < 255) y += 1
+  sj_sprite_set_pos(0, x, y)
+}
