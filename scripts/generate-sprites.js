@@ -236,6 +236,25 @@ const PLATFORM_BROWN = [
   "................",
 ]
 
+const PLATFORM_SPRING = [
+  "................",
+  "................",
+  "................",
+  "................",
+  ".R.R.R.R.R.R.R.R.",
+  ".R.R.R.R.R.R.R.R.",
+  ".RRRRRRRRRRRRRRR.",
+  "..RRRRRRRRRRRRR..",
+  "..RRRRRRRRRRRRR..",
+  "...RRRRRRRRRRR...",
+  "....RRRRRRRRRR...",
+  "....WWWWWWWWWW...",
+  "....WWWWWWWWWW...",
+  "....WWWWWWWWWW...",
+  "................",
+  "................",
+]
+
 const FONT = {
   "0": [0x3C, 0x66, 0x6E, 0x76, 0x66, 0x66, 0x3C, 0x00],
   "1": [0x18, 0x38, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00],
@@ -283,7 +302,7 @@ writeSheetTo(OUT, "slime.png", [SLIME_A, SLIME_B])
 writeSheetTo(OUT, "tiles.png", [TILE_GRASS, TILE_DIRT])
 writeSheetTo(HELLO_OUT, "hero.png", [KNIGHT_IDLE])
 writeSheetTo(JUMP_OUT, "knight.png", [KNIGHT_IDLE, KNIGHT_WALK1, KNIGHT_WALK2, KNIGHT_JUMP])
-writeSheetTo(JUMP_OUT, "platforms.png", [PLATFORM_GREEN, PLATFORM_BLUE, PLATFORM_BROWN])
+writeSheetTo(JUMP_OUT, "platforms.png", [PLATFORM_GREEN, PLATFORM_BLUE, PLATFORM_BROWN, PLATFORM_SPRING])
 writeFontSheet(JUMP_OUT, "font.png", FONT_ORDER, FONT)
 
 function writeFontSheet(outDirectory, name, order, font) {
