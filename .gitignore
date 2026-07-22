@@ -9,7 +9,8 @@ vendor/
 examples/*/build/
 examples/slime-knight/
 examples/doodle-jump/
-snesjs_engine_spec.mdexamples/*/assets/*.pic
+snesjs_engine_spec.md
+examples/*/assets/*.pic
 examples/*/assets/*.pal
 examples/*/assets/*.inc
 examples/*/assets/*_data.as
