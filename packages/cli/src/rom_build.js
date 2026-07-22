@@ -23,7 +23,7 @@ export function findSdk(root) {
   }
 }
 
-export function buildRom(root, generatedC, { name = "SNESJS GAME" } = {}) {
+export function buildRom(root, generatedC, { name = "SNESJS GAME", assets = [] } = {}) {
   const sdk = findSdk(root)
   if (!sdk) {
     return { ok: false, reason: "OpenSNES SDK not found — run scripts/install-sdk.sh" }
@@ -33,9 +33,13 @@ export function buildRom(root, generatedC, { name = "SNESJS GAME" } = {}) {
   fs.rmSync(romDirectory, { recursive: true, force: true })
   fs.mkdirSync(romDirectory, { recursive: true })
 
+  const converted = convertAssets(root, romDirectory, sdk, assets)
+
   fs.writeFileSync(path.join(romDirectory, "main.c"), generatedC)
   fs.copyFileSync(RUNTIME_C, path.join(romDirectory, "snesjs_runtime.c"))
   fs.copyFileSync(RUNTIME_H, path.join(romDirectory, "snesjs_runtime.h"))
+  fs.writeFileSync(path.join(romDirectory, "data.asm"), dataAsm(converted))
+  fs.writeFileSync(path.join(romDirectory, "assets.c"), assetsC(converted))
   fs.writeFileSync(path.join(romDirectory, "Makefile"), makefile(sdk, name))
 
   const makeOutput = execFileSync("make", ["-C", romDirectory], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })
@@ -55,6 +59,52 @@ export function buildRom(root, generatedC, { name = "SNESJS GAME" } = {}) {
   }
 
   return { ok: true, sfc: path.join(distDirectory, "game.sfc"), sym: path.join(distDirectory, "game.sym"), size: fs.readFileSync(sfc).length, makeOutput }
+}
+
+function convertAssets(root, romDirectory, sdk, assets) {
+  const gfx4snes = path.join(sdk, "bin", "gfx4snes")
+  const converted = []
+  for (const asset of assets) {
+    const source = path.join(root, asset.file)
+    const base = path.basename(asset.file, path.extname(asset.file))
+    const png = path.join(romDirectory, `${base}.png`)
+    fs.copyFileSync(source, png)
+    execFileSync(gfx4snes, ["-s", String(asset.size ?? 16), "-p", "-i", png], { stdio: ["ignore", "ignore", "ignore"] })
+    converted.push({ name: base, tileBase: asset.tileBase ?? converted.length * 32, paletteBase: asset.paletteBase ?? converted.length, pic: `${base}.pic`, pal: `${base}.pal` })
+  }
+  return converted
+}
+
+function dataAsm(assets) {
+  const lines = [`.section ".rodata1" superfree`, ""]
+  for (const asset of assets) {
+    lines.push(`${asset.name}_til:`)
+    lines.push(`.incbin "${asset.pic}"`)
+    lines.push(`${asset.name}_tilend:`)
+    lines.push("")
+    lines.push(`${asset.name}_pal:`)
+    lines.push(`.incbin "${asset.pal}"`)
+    lines.push(`${asset.name}_palend:`)
+    lines.push("")
+  }
+  lines.push(".ends")
+  return lines.join("\n")
+}
+
+function assetsC(assets) {
+  const lines = [`#include <snes.h>`, ""]
+  for (const asset of assets) {
+    lines.push(`extern u8 ${asset.name}_til[], ${asset.name}_tilend[];`)
+    lines.push(`extern u8 ${asset.name}_pal[], ${asset.name}_palend[];`)
+  }
+  lines.push("")
+  lines.push(`void sj_assets_load(void) {`)
+  for (const asset of assets) {
+    lines.push(`    dmaCopyVram(${asset.name}_til, ${asset.tileBase * 16}, ${asset.name}_tilend - ${asset.name}_til);`)
+    lines.push(`    dmaCopyCGram(${asset.name}_pal, OBJ_CGRAM_BASE + ${asset.paletteBase * 16}, 32);`)
+  }
+  lines.push(`}`)
+  return lines.join("\n")
 }
 
 function fixChecksum(sfcPath) {
@@ -89,7 +139,8 @@ ROM_NAME := ${String(name).slice(0, 21)}
 USE_LIB     := 1
 LIB_MODULES := console dma sprite input background
 
-CSRC   := main.c snesjs_runtime.c
+CSRC   := main.c snesjs_runtime.c assets.c
+ASMSRC := data.asm
 
 include $(OPENSNES)/make/common.mk
 `

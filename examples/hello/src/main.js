@@ -4,7 +4,7 @@ let x = 112
 let y = 96
 
 function setup() {
-  sj_sprite_create(0, x, y)
+  sj_sprite_create(0, 0, 0, x, y)
 }
 
 function update() {

@@ -1,21 +1,14 @@
 export default {
   name: "Hello SNES",
   entry: "src/main.js",
-  cartridge: {
-    mapping: "auto",
-    fastRom: true,
-    sram: "0kb"
-  },
-  video: {
-    region: "NTSC",
-    defaultMode: 1
-  },
+  assets: [
+    { file: "assets/hero.png", size: 16 }
+  ],
   scenes: [
     {
       name: "main",
       assets: [
-        { type: "bg", name: "sky_tiles", tiles: 64 },
-        { type: "sprite", name: "player", tiles: 128, sprites: 8, colors: 16 }
+        { type: "sprite", name: "hero", tiles: 32, colors: 16, sprites: 1 }
       ]
     }
   ]

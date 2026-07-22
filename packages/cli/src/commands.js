@@ -33,7 +33,7 @@ export async function build(root) {
   const sdk = findSdk(root)
   if (sdk) {
     process.stdout.write(`\nOpenSNES SDK found, building ROM ...\n`)
-    const rom = buildRom(root, generated[0].c, { name: project.name })
+    const rom = buildRom(root, generated[0].c, { name: project.name, assets: project.config.assets ?? [] })
     if (rom.ok) {
       process.stdout.write(`✓ ${rom.sfc} (${rom.size} bytes)\n`)
     } else {

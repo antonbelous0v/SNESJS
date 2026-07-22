@@ -50,7 +50,22 @@ const SDK_GLOBALS = Object.freeze([
   "asset", "assets", "paletteGroup", "raw", "native", "unsafe", "assert", "buildTime",
   "sj_init", "sj_wait_vblank", "sj_poll_input", "sj_flush_dma", "sj_oam_upload",
   "sj_sprite_create", "sj_sprite_set_pos", "sj_scene_change", "sj_audio_play_sfx", "sj_tilemap_scroll",
+  "sj_sprite_set_tile", "sj_sprite_hide",
+  "u8", "i8", "u16", "i16", "u24", "u32", "i32", "fixed", "fixed8", "fixed16",
 ])
+
+const TYPE_HELPERS = Object.freeze({
+  u8: "u8",
+  i8: "i8",
+  u16: "u16",
+  i16: "i16",
+  u24: "u24",
+  u32: "u32",
+  i32: "i32",
+  fixed: "fixed16",
+  fixed8: "fixed8",
+  fixed16: "fixed16",
+})
 
 export class TypeInferrer {
   constructor(diagnostics = new DiagnosticBag()) {
@@ -279,6 +294,13 @@ export class TypeInferrer {
         return node.type
       }
       case NodeKind.CallExpression: {
+        if (node.callee.kind === NodeKind.Identifier && TYPE_HELPERS[node.callee.name]) {
+          if (node.arguments[0]) {
+            this.inferExpression(node.arguments[0])
+          }
+          node.type = BUILTIN_TYPES[TYPE_HELPERS[node.callee.name]]
+          return node.type
+        }
         this.inferExpression(node.callee)
         for (const argument of node.arguments) {
           this.inferExpression(argument)

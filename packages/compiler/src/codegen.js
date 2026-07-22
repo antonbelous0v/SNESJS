@@ -1,6 +1,8 @@
 import { NodeKind } from "./ast.js"
 import { TypeKind } from "./types.js"
 
+const TYPE_HELPER_NAMES = new Set(["u8", "i8", "u16", "i16", "u24", "u32", "i32", "fixed", "fixed8", "fixed16"])
+
 const BINARY_OPERATORS = {
   "+": "+",
   "-": "-",
@@ -9,6 +11,8 @@ const BINARY_OPERATORS = {
   "%": "%",
   "==": "==",
   "!=": "!=",
+  "===": "==",
+  "!==": "!=",
   "<": "<",
   ">": ">",
   "<=": "<=",
@@ -343,6 +347,9 @@ export class CodeGenerator {
   }
 
   emitCall(node) {
+    if (node.callee.kind === NodeKind.Identifier && TYPE_HELPER_NAMES.has(node.callee.name)) {
+      return node.arguments[0] ? this.emitExpression(node.arguments[0]) : "0"
+    }
     const input = this.emitInputCall(node)
     if (input !== null) {
       return input

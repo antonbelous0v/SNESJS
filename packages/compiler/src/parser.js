@@ -391,7 +391,7 @@ export class Parser {
 
   conditional() {
     const test = this.binary(0)
-    if (!this.cursor.matchOperator("?")) {
+    if (!this.cursor.matchValue("?")) {
       return test
     }
     const consequent = this.assignment()
