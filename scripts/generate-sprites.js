@@ -2,7 +2,10 @@ import fs from "node:fs"
 import path from "node:path"
 import zlib from "node:zlib"
 
-const OUT = path.resolve(new URL("..", import.meta.url).pathname, "examples/slime-knight/assets")
+const ROOT = path.resolve(new URL("..", import.meta.url).pathname)
+const OUT = path.join(ROOT, "examples/slime-knight/assets")
+const HELLO_OUT = path.join(ROOT, "examples/hello/assets")
+const JUMP_OUT = path.join(ROOT, "examples/doodle-jump/assets")
 
 const PALETTE = {
   ".": [0, 0, 0, 0],
@@ -19,6 +22,9 @@ const PALETTE = {
   "W": [245, 245, 245, 255],
   "K": [15, 15, 15, 255],
   "P": [255, 150, 180, 255],
+  "C": [120, 190, 230, 255],
+  "N": [60, 120, 200, 255],
+  "T": [190, 140, 70, 255],
 }
 
 const KNIGHT_IDLE = [
@@ -76,6 +82,25 @@ const KNIGHT_WALK2 = [
   "....OBBOOBBO....",
   "....OBB..BBO....",
   "...OOOO..OOOO...",
+]
+
+const KNIGHT_JUMP = [
+  "................",
+  ".....OOOOOO.....",
+  "....OSSSSSSO....",
+  "....OSSSSSSO....",
+  "....OSSYYSSO....",
+  "....OSSSSSSO....",
+  ".....OBBBBO.....",
+  "...OOBBBBBBOO...",
+  "..OBBBBBBBBBBO..",
+  "..OBBBBBBBBBBO..",
+  "..OBBRRBBRRBBO..",
+  "...OBBBBBBBBO...",
+  "....OBBBBBBO....",
+  "...OBB....BBO...",
+  "...OOO....OOO...",
+  "................",
 ]
 
 const SLIME_A = [
@@ -154,16 +179,130 @@ const TILE_DIRT = [
   "EEEEEEEEEEEEEEEE",
 ]
 
-writeSheet("player.png", [KNIGHT_IDLE, KNIGHT_WALK1, KNIGHT_WALK2])
-writeSheet("slime.png", [SLIME_A, SLIME_B])
-writeSheet("tiles.png", [TILE_GRASS, TILE_DIRT])
+const PLATFORM_GREEN = [
+  "LLLLLLLLLLLLLLLL",
+  "LLGGGGGGGGGGGGLL",
+  "GGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGG",
+  "GGGGGGGGGGGGGGGG",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+]
 
-const HELLO_OUT = path.resolve(new URL("..", import.meta.url).pathname, "examples/hello/assets")
-fs.mkdirSync(HELLO_OUT, { recursive: true })
+const PLATFORM_BLUE = [
+  "CCCCCCCCCCCCCCCC",
+  "CCNNNNNNNNNNNNCC",
+  "NNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNN",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+]
+
+const PLATFORM_BROWN = [
+  "TTTTTTTTTTTTTTTT",
+  "TTMMMMMMMMMMMMTT",
+  "MMMMMMMMMMMMMMMM",
+  "MMMMMMMMMMMMMMMM",
+  "MMMMMMMMMMMMMMMM",
+  "MMMMMMMMMMMMMMMM",
+  "MMMMMMMMMMMMMMMM",
+  "MMMMMMMMMMMMMMMM",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+  "................",
+]
+
+const FONT = {
+  "0": [0x3C, 0x66, 0x6E, 0x76, 0x66, 0x66, 0x3C, 0x00],
+  "1": [0x18, 0x38, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00],
+  "2": [0x3C, 0x66, 0x06, 0x0C, 0x18, 0x30, 0x7E, 0x00],
+  "3": [0x3C, 0x66, 0x06, 0x1C, 0x06, 0x66, 0x3C, 0x00],
+  "4": [0x0C, 0x1C, 0x3C, 0x6C, 0x7E, 0x0C, 0x0C, 0x00],
+  "5": [0x7E, 0x60, 0x7C, 0x06, 0x06, 0x66, 0x3C, 0x00],
+  "6": [0x3C, 0x66, 0x60, 0x7C, 0x66, 0x66, 0x3C, 0x00],
+  "7": [0x7E, 0x66, 0x06, 0x0C, 0x18, 0x18, 0x18, 0x00],
+  "8": [0x3C, 0x66, 0x66, 0x3C, 0x66, 0x66, 0x3C, 0x00],
+  "9": [0x3C, 0x66, 0x66, 0x3E, 0x06, 0x66, 0x3C, 0x00],
+  "A": [0x3C, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x66, 0x00],
+  "B": [0x7C, 0x66, 0x66, 0x7C, 0x66, 0x66, 0x7C, 0x00],
+  "C": [0x3C, 0x66, 0x60, 0x60, 0x60, 0x66, 0x3C, 0x00],
+  "D": [0x78, 0x6C, 0x66, 0x66, 0x66, 0x6C, 0x78, 0x00],
+  "E": [0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x7E, 0x00],
+  "F": [0x7E, 0x60, 0x60, 0x7C, 0x60, 0x60, 0x60, 0x00],
+  "G": [0x3C, 0x66, 0x60, 0x6E, 0x66, 0x66, 0x3C, 0x00],
+  "H": [0x66, 0x66, 0x66, 0x7E, 0x66, 0x66, 0x66, 0x00],
+  "I": [0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00],
+  "J": [0x1E, 0x0C, 0x0C, 0x0C, 0x0C, 0x6C, 0x38, 0x00],
+  "K": [0x66, 0x6C, 0x78, 0x70, 0x78, 0x6C, 0x66, 0x00],
+  "L": [0x60, 0x60, 0x60, 0x60, 0x60, 0x60, 0x7E, 0x00],
+  "M": [0x63, 0x77, 0x7F, 0x6B, 0x63, 0x63, 0x63, 0x00],
+  "N": [0x66, 0x76, 0x7E, 0x7E, 0x6E, 0x66, 0x66, 0x00],
+  "O": [0x3C, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00],
+  "P": [0x7C, 0x66, 0x66, 0x7C, 0x60, 0x60, 0x60, 0x00],
+  "Q": [0x3C, 0x66, 0x66, 0x66, 0x6E, 0x3C, 0x0E, 0x00],
+  "R": [0x7C, 0x66, 0x66, 0x7C, 0x78, 0x6C, 0x66, 0x00],
+  "S": [0x3C, 0x66, 0x60, 0x3C, 0x06, 0x66, 0x3C, 0x00],
+  "T": [0x7E, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x00],
+  "U": [0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x00],
+  "V": [0x66, 0x66, 0x66, 0x66, 0x66, 0x3C, 0x18, 0x00],
+  "W": [0x63, 0x63, 0x63, 0x6B, 0x7F, 0x77, 0x63, 0x00],
+  "X": [0x66, 0x66, 0x3C, 0x18, 0x3C, 0x66, 0x66, 0x00],
+  "Y": [0x66, 0x66, 0x66, 0x3C, 0x18, 0x18, 0x18, 0x00],
+  "Z": [0x7E, 0x06, 0x0C, 0x18, 0x30, 0x60, 0x7E, 0x00],
+  " ": [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+}
+
+const FONT_ORDER = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ "
+
+writeSheetTo(OUT, "player.png", [KNIGHT_IDLE, KNIGHT_WALK1, KNIGHT_WALK2, KNIGHT_JUMP])
+writeSheetTo(OUT, "slime.png", [SLIME_A, SLIME_B])
+writeSheetTo(OUT, "tiles.png", [TILE_GRASS, TILE_DIRT])
 writeSheetTo(HELLO_OUT, "hero.png", [KNIGHT_IDLE])
+writeSheetTo(JUMP_OUT, "knight.png", [KNIGHT_IDLE, KNIGHT_WALK1, KNIGHT_WALK2, KNIGHT_JUMP])
+writeSheetTo(JUMP_OUT, "platforms.png", [PLATFORM_GREEN, PLATFORM_BLUE, PLATFORM_BROWN])
+writeFontSheet(JUMP_OUT, "font.png", FONT_ORDER, FONT)
 
-function writeSheet(name, frames) {
-  writeSheetTo(OUT, name, frames)
+function writeFontSheet(outDirectory, name, order, font) {
+  const width = order.length * 8
+  const height = 8
+  const colorSet = [[0, 0, 0, 0], [255, 255, 255, 255]]
+  const indices = new Uint8Array(width * height)
+  for (let glyph = 0; glyph < order.length; glyph += 1) {
+    const bytes = font[order[glyph]]
+    for (let y = 0; y < 8; y += 1) {
+      for (let x = 0; x < 8; x += 1) {
+        const bit = (bytes[y] >> (7 - x)) & 1
+        indices[y * width + glyph * 8 + x] = bit
+      }
+    }
+  }
+  fs.mkdirSync(outDirectory, { recursive: true })
+  fs.writeFileSync(path.join(outDirectory, name), encodeIndexedPng(width, height, indices, colorSet))
+  console.log(`wrote ${name} (${width}x${height} font, ${order.length} glyphs)`)
 }
 
 function writeSheetTo(outDirectory, name, frames) {
@@ -190,6 +329,7 @@ function writeSheetTo(outDirectory, name, frames) {
       }
     }
   }
+  fs.mkdirSync(outDirectory, { recursive: true })
   fs.writeFileSync(path.join(outDirectory, name), encodeIndexedPng(width, height, indices, colorSet))
   console.log(`wrote ${name} (${width}x${height}, ${colorSet.length} colors)`)
 }

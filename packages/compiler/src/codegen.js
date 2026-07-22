@@ -39,11 +39,22 @@ export class CodeGenerator {
     this.emitRuntimeHeader()
     this.collectClasses(ast)
     this.emitStructDefinitions()
+    this.emitFunctionPrototypes(ast)
     for (const statement of ast.statements) {
       this.emitStatement(statement)
     }
     this.emitMain(ast)
     return this.output.join("\n")
+  }
+
+  emitFunctionPrototypes(ast) {
+    for (const statement of ast.statements) {
+      if (statement.kind === NodeKind.FunctionDeclaration && statement.id) {
+        const params = statement.params.map(param => `${this.parameterType(param)} ${this.bindingName(param)}`).join(", ")
+        this.line(`${this.returnType(statement)} ${statement.id.name}(${params});`)
+      }
+    }
+    this.line(``)
   }
 
   emitRuntimeHeader() {
@@ -114,7 +125,7 @@ export class CodeGenerator {
         this.emitIf(statement)
         return
       case NodeKind.WhileStatement:
-        this.line(`while (${this.emitExpression(statement.test)}) {`)
+        this.line(`while (${this.stripOuterParens(this.emitExpression(statement.test))}) {`)
         this.indent(() => this.emitStatement(statement.body))
         this.line(`}`)
         return
@@ -156,7 +167,12 @@ export class CodeGenerator {
   emitVariableDeclaration(statement) {
     for (const declarator of statement.declarations) {
       const name = declarator.id.kind === NodeKind.Identifier ? declarator.id.name : "<pattern>"
-      if (declarator.init) {
+      if (declarator.init && declarator.init.kind === NodeKind.ArrayExpression) {
+        const elementType = declarator.init.type?.elementType
+        const elementC = this.cType(elementType)
+        const elements = declarator.init.elements.map(element => element ? this.emitExpression(element) : "0").join(", ")
+        this.line(`${elementC} ${name}[${declarator.init.elements.length}] = { ${elements} };`)
+      } else if (declarator.init) {
         this.line(`${this.cType(declarator.init.type)} ${name} = ${this.emitExpression(declarator.init)};`)
       } else {
         this.line(`int ${name};`)
@@ -165,7 +181,7 @@ export class CodeGenerator {
   }
 
   emitIf(statement) {
-    this.line(`if (${this.emitExpression(statement.test)}) {`)
+    this.line(`if (${this.stripOuterParens(this.emitExpression(statement.test))}) {`)
     this.indent(() => this.emitStatement(statement.consequent))
     if (statement.alternate) {
       this.line(`} else {`)
@@ -176,7 +192,7 @@ export class CodeGenerator {
 
   emitFor(statement) {
     const init = statement.init ? this.emitForInit(statement.init) : ``
-    const test = statement.test ? this.emitExpression(statement.test) : ``
+    const test = statement.test ? this.stripOuterParens(this.emitExpression(statement.test)) : ``
     const update = statement.update ? this.emitExpression(statement.update) : ``
     this.line(`for (${init}; ${test}; ${update}) {`)
     this.indent(() => this.emitStatement(statement.body))
@@ -195,7 +211,7 @@ export class CodeGenerator {
   }
 
   emitSwitch(statement) {
-    this.line(`switch (${this.emitExpression(statement.discriminant)}) {`)
+    this.line(`switch (${this.stripOuterParens(this.emitExpression(statement.discriminant))}) {`)
     this.indent(() => {
       for (const switchCase of statement.cases) {
         if (switchCase.test) {
@@ -295,7 +311,7 @@ export class CodeGenerator {
       case NodeKind.CallExpression:
         return this.emitCall(node)
       case NodeKind.ConditionalExpression:
-        return `(${this.emitExpression(node.test)} ? ${this.emitExpression(node.consequent)} : ${this.emitExpression(node.alternate)})`
+        return `(${this.stripOuterParens(this.emitExpression(node.test))} ? ${this.emitExpression(node.consequent)} : ${this.emitExpression(node.alternate)})`
       case NodeKind.ThisExpression:
         return `self`
       case NodeKind.ArrayExpression:

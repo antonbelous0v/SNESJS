@@ -30,7 +30,7 @@ if (lives > 0) { lives += 2 }`)
 
   assert.match(c, /unsigned char lives = 3;/)
   assert.match(c, /lives -= 1;/)
-  assert.match(c, /if \(\(lives > 0\)\) \{/)
+  assert.match(c, /if \(lives > 0\) \{/)
 })
 
 test("lowers loops to bounded C for statements", () => {
@@ -39,7 +39,7 @@ for (let i = 0; i < 10; i++) { total += i }`)
   assert.equal(result.hasErrors, false)
   const c = generateC(result.ast)
 
-  assert.match(c, /for \(unsigned char i = 0; \(i < 10\); \(i\+\+\)\) \{/)
+  assert.match(c, /for \(unsigned char i = 0; i < 10; \(i\+\+\)\) \{/)
 })
 
 test("maps SNES numeric types to C primitive types", () => {

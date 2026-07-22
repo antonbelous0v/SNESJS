@@ -51,6 +51,7 @@ const SDK_GLOBALS = Object.freeze([
   "sj_init", "sj_wait_vblank", "sj_poll_input", "sj_flush_dma", "sj_oam_upload",
   "sj_sprite_create", "sj_sprite_set_pos", "sj_scene_change", "sj_audio_play_sfx", "sj_tilemap_scroll",
   "sj_sprite_set_tile", "sj_sprite_hide",
+  "sj_sprite_top", "sj_sprite_create_small", "sj_random",
   "u8", "i8", "u16", "i16", "u24", "u32", "i32", "fixed", "fixed8", "fixed16",
 ])
 
