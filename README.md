@@ -178,6 +178,21 @@ If a scene's assets don't fit in real hardware, you get an `E4201` error listing
 
 The generated C also lands in `build/generated/` if you want to look at it, which is occasionally useful for understanding why something is slow.
 
+## The example games
+
+There are three playable examples, each one a real ROM you can build and boot in luna:
+
+- `examples/hello` — a single 16×16 sprite you steer with the D-pad. The smallest possible program that still exercises the whole pipeline.
+- `examples/slime-knight` — a little arena game with a blue knight, three patrolling slimes, a tiled grass floor, gravity and collision.
+- `examples/doodle-jump` — a full Doodle Jump clone: auto-bouncing knight, four platform types (static, moving, breakable, spring), scrolling, wrap-around, a score and best-score counter, a menu, pause, and a game-over screen. This one shows off text rendering, arrays, and the random number generator.
+
+```bash
+cd examples/doodle-jump
+node ../../packages/cli/bin/snes.js build
+luna-gui dist/game.sfc
+# arrows to move, SELECT to pause, A to start / restart
+```
+
 ## The pipeline, for the curious
 
 ```text
