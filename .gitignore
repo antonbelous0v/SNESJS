@@ -7,6 +7,8 @@ dist/
 packages/*/build/
 vendor/
 examples/*/build/
+examples/slime-knight/
+examples/doodle-jump/
 snesjs_engine_spec.mdexamples/*/assets/*.pic
 examples/*/assets/*.pal
 examples/*/assets/*.inc
