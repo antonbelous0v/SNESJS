@@ -48,13 +48,36 @@ export function buildRom(root, generatedC, { name = "SNESJS GAME" } = {}) {
 
   const distDirectory = path.join(root, "dist")
   fs.mkdirSync(distDirectory, { recursive: true })
+  fixChecksum(sfc)
   fs.copyFileSync(sfc, path.join(distDirectory, "game.sfc"))
   if (fs.existsSync(sym)) {
     fs.copyFileSync(sym, path.join(distDirectory, "game.sym"))
   }
 
-  const bytes = fs.readFileSync(sfc)
-  return { ok: true, sfc: path.join(distDirectory, "game.sfc"), sym: path.join(distDirectory, "game.sym"), size: bytes.length, makeOutput }
+  return { ok: true, sfc: path.join(distDirectory, "game.sfc"), sym: path.join(distDirectory, "game.sym"), size: fs.readFileSync(sfc).length, makeOutput }
+}
+
+function fixChecksum(sfcPath) {
+  const bytes = fs.readFileSync(sfcPath)
+  const headerOffset = 0x7FC0
+  if (headerOffset + 0x20 > bytes.length) {
+    return
+  }
+  bytes[headerOffset + 0x1C] = 0
+  bytes[headerOffset + 0x1D] = 0
+  bytes[headerOffset + 0x1E] = 0
+  bytes[headerOffset + 0x1F] = 0
+  let sum = 0
+  for (const byte of bytes) {
+    sum += byte
+  }
+  sum &= 0xFFFF
+  const complement = (~sum) & 0xFFFF
+  bytes[headerOffset + 0x1C] = complement & 0xFF
+  bytes[headerOffset + 0x1D] = (complement >> 8) & 0xFF
+  bytes[headerOffset + 0x1E] = sum & 0xFF
+  bytes[headerOffset + 0x1F] = (sum >> 8) & 0xFF
+  fs.writeFileSync(sfcPath, bytes)
 }
 
 function makefile(sdk, name) {
